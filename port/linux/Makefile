@@ -7,14 +7,14 @@ MAJOR = 1
 MINOR = 0
 VERSION = $(MAJOR).$(MINOR)
 
-DESTDIR ?= /usr/local
-install_bin_dir?=${DESTDIR}/opt/iotivity-constrained/bin/
-prefix = $(DESTDIR)
-exec_prefix = $(prefix)
-bindir = $(exec_prefix)/bin
-libdir = $(exec_prefix)/lib
-includedir = $(prefix)/include
-pkgconfigdir = $(libdir)/pkgconfig
+DESTDIR ?=
+extradir?=${DESTDIR}/${libdir}/iotivity-constrained/
+prefix ?= /usr
+exec_prefix ?= $(prefix)
+bindir ?= $(exec_prefix)/bin
+libdir ?= $(exec_prefix)/lib
+includedir ?= $(prefix)/include
+pkgconfigdir ?= $(libdir)/pkgconfig
 EXTRA_CFLAGS =
 
 DTLS=	aes.c		aesni.c		arc4.c		asn1parse.c	asn1write.c	base64.c	\
@@ -239,26 +239,26 @@ test:
 	echo "TODO"
 
 install: $(SAMPLES) $(PC) $(CONSTRAINED_LIBS)
-	$(INSTALL) -d $(bindir)
-	$(INSTALL) -d $(libdir)
-	$(INSTALL) -d $(includedir)/iotivity-constrained
-	$(INSTALL) -d $(includedir)/iotivity-constrained/port
-	$(INSTALL) -d $(includedir)/iotivity-constrained/util
-	$(INSTALL) -d $(includedir)/iotivity-constrained/util/pt
-	$(INSTALL) -d $(includedir)/iotivity-constrained/messaging/coap
-	$(INSTALL) -d $(includedir)/iotivity-constrained/deps/tinycbor/src/
-	$(INSTALL) -d $(pkgconfigdir)
-	$(INSTALL) -m 644 $(HEADERS) $(includedir)/iotivity-constrained/
-	$(INSTALL) -m 644 $(HEADERS_PORT) $(includedir)/iotivity-constrained/port
-	$(INSTALL) -m 644 $(HEADERS_UTIL) $(includedir)/iotivity-constrained/util
-	$(INSTALL) -m 644 $(HEADERS_UTIL_PT) $(includedir)/iotivity-constrained/util/pt
-	$(INSTALL) -m 644 $(HEADERS_COAP) $(includedir)/iotivity-constrained/messaging/coap
-	$(INSTALL) -m 644 $(HEADERS_TINYCBOR) $(includedir)/iotivity-constrained/deps/tinycbor/src
-	$(INSTALL) -m 644 $(PC) $(pkgconfigdir)
-	$(LIBTOOL) --mode=install $(INSTALL) $(CONSTRAINED_LIBS) $(libdir)
+	$(INSTALL) -d ${DESTDIR}/$(bindir)
+	$(INSTALL) -d ${DESTDIR}/$(libdir)
+	$(INSTALL) -d ${DESTDIR}/$(includedir)/iotivity-constrained
+	$(INSTALL) -d ${DESTDIR}/$(includedir)/iotivity-constrained/port
+	$(INSTALL) -d ${DESTDIR}/$(includedir)/iotivity-constrained/util
+	$(INSTALL) -d ${DESTDIR}/$(includedir)/iotivity-constrained/util/pt
+	$(INSTALL) -d ${DESTDIR}/$(includedir)/iotivity-constrained/messaging/coap
+	$(INSTALL) -d ${DESTDIR}/$(includedir)/iotivity-constrained/deps/tinycbor/src/
+	$(INSTALL) -d ${DESTDIR}/$(pkgconfigdir)
+	$(INSTALL) -m 644 $(HEADERS) ${DESTDIR}/$(includedir)/iotivity-constrained/
+	$(INSTALL) -m 644 $(HEADERS_PORT) ${DESTDIR}/$(includedir)/iotivity-constrained/port
+	$(INSTALL) -m 644 $(HEADERS_UTIL) ${DESTDIR}/$(includedir)/iotivity-constrained/util
+	$(INSTALL) -m 644 $(HEADERS_UTIL_PT) ${DESTDIR}/$(includedir)/iotivity-constrained/util/pt
+	$(INSTALL) -m 644 $(HEADERS_COAP) ${DESTDIR}/$(includedir)/iotivity-constrained/messaging/coap
+	$(INSTALL) -m 644 $(HEADERS_TINYCBOR) ${DESTDIR}/$(includedir)/iotivity-constrained/deps/tinycbor/src
+	$(INSTALL) -m 644 $(PC) ${DESTDIR}/$(pkgconfigdir)
+	$(LIBTOOL) --mode=install $(INSTALL) $(CONSTRAINED_LIBS) ${DESTDIR}/$(libdir)
 # Installing the samples
-	$(INSTALL) -d ${install_bin_dir}
-	$(LIBTOOL) --mode=install $(INSTALL) $(SAMPLES) ${install_bin_dir}
+	$(INSTALL) -d ${extradir}/bin
+	$(LIBTOOL) --mode=install $(INSTALL) $(SAMPLES) ${extradir}/bin
 
 ############# TESTS ##########################
 TESTS = \
