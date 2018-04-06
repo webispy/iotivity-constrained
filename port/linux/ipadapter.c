@@ -15,6 +15,7 @@
 */
 
 #define __USE_GNU
+#define _GNU_SOURCE
 #include "ipcontext.h"
 #ifdef OC_TCP
 #include "tcpadapter.h"
@@ -1052,7 +1053,11 @@ int oc_connectivity_init(int device) {
     return -1;
   }
 
-  OC_DBG("Successfully initialized connectivity for device %d", device);
+  if (pthread_setname_np(dev->event_thread, "ipadapter") != 0) {
+    OC_ERR("thread name setting failed\n");
+  }
+
+  OC_DBG("Successfully initialized connectivity for device %d\n", device);
 
   return 0;
 }
