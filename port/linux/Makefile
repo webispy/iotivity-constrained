@@ -2,6 +2,9 @@ CC = gcc
 SED = sed
 INSTALL = install
 CHECK_SCRIPT = ../../tools/check.py
+MAJOR = 1
+MINOR = 0
+VERSION = $(MAJOR).$(MINOR)
 
 DESTDIR ?= /usr/local
 install_bin_dir?=${DESTDIR}/opt/iotivity-constrained/bin/
@@ -191,21 +194,24 @@ iotivity-constrained-server.pc: iotivity-constrained-server.pc.in
 		-e 's,@prefix@,$(prefix),' \
 		-e 's,@exec_prefix@,$(exec_prefix),' \
 		-e 's,@libdir@,$(libdir),' \
-		-e 's,@includedir@,$(includedir),'
+		-e 's,@includedir@,$(includedir),' \
+		-e 's,@version@,$(VERSION),'
 
 iotivity-constrained-client.pc: iotivity-constrained-client.pc.in
 	$(SED) > $@ < $< \
 		-e 's,@prefix@,$(prefix),' \
 		-e 's,@exec_prefix@,$(exec_prefix),' \
 		-e 's,@libdir@,$(libdir),' \
-		-e 's,@includedir@,$(includedir),'
+		-e 's,@includedir@,$(includedir),' \
+		-e 's,@version@,$(VERSION),'
 
 iotivity-constrained-client-server.pc: iotivity-constrained-client-server.pc.in
 	$(SED) > $@ < $< \
 		-e 's,@prefix@,$(prefix),' \
 		-e 's,@exec_prefix@,$(exec_prefix),' \
 		-e 's,@libdir@,$(libdir),' \
-		-e 's,@includedir@,$(includedir),'
+		-e 's,@includedir@,$(includedir),' \
+		-e 's,@version@,$(VERSION),'
 
 ifeq ($(SECURE),1)
 $(MBEDTLS_PATCH_FILE):
