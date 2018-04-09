@@ -12,7 +12,7 @@ libdir = $(exec_prefix)/lib
 includedir = $(prefix)/include
 pkgconfigdir = $(libdir)/pkgconfig
 
-DTLS= 	aes.c		aesni.c 	arc4.c  	asn1parse.c	asn1write.c	base64.c	\
+DTLS=	aes.c		aesni.c		arc4.c		asn1parse.c	asn1write.c	base64.c	\
 	bignum.c	blowfish.c	camellia.c	ccm.c		cipher.c	cipher_wrap.c	\
 	cmac.c		ctr_drbg.c	des.c		dhm.c		ecdh.c		ecdsa.c		\
 	ecjpake.c	ecp.c		ecp_curves.c	entropy.c	entropy_poll.c	error.c		\
@@ -21,7 +21,7 @@ DTLS= 	aes.c		aesni.c 	arc4.c  	asn1parse.c	asn1write.c	base64.c	\
 	pem.c		pk.c		pk_wrap.c	pkcs12.c	pkcs5.c		pkparse.c	\
 	pkwrite.c	platform.c	ripemd160.c	rsa.c		sha1.c		sha256.c	\
 	sha512.c	threading.c	timing.c	version.c	version_features.c		\
-	xtea.c  	pkcs11.c 	x509.c 		x509_crt.c	debug.c		net_sockets.c	\
+	xtea.c		pkcs11.c	x509.c		x509_crt.c	debug.c		net_sockets.c	\
 	ssl_cache.c	ssl_ciphersuites.c		ssl_cli.c	ssl_cookie.c			\
 	ssl_srv.c	ssl_ticket.c	ssl_tls.c
 DTLSFLAGS=-I../../deps/mbedtls/include -D__OC_RANDOM
