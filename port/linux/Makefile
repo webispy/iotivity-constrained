@@ -1,6 +1,7 @@
-CC = gcc
-SED = sed
-INSTALL = install
+CC ?= gcc
+SED ?= sed
+INSTALL ?= install
+LIBTOOL ?= libtool
 CHECK_SCRIPT = ../../tools/check.py
 MAJOR = 1
 MINOR = 0
@@ -46,10 +47,6 @@ HEADERS_PORT = $(wildcard ../../port/*.h)
 HEADERS_TINYCBOR = $(wildcard ../../deps/tinycbor/src/*.h)
 
 CFLAGS=-fPIC -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -ffreestanding -Os -fno-stack-protector -ffunction-sections -fdata-sections -fno-reorder-functions -fno-defer-pop -fno-strict-overflow -I./ -I../../include/ -I../../ -std=gnu99 -Wall -Wextra -Werror -pedantic #-Wl,-Map,client.map
-OBJ_COMMON=$(addprefix obj/,$(notdir $(SRC_COMMON:.c=.o)))
-OBJ_CLIENT=$(addprefix obj/client/,$(notdir $(SRC:.c=.o)))
-OBJ_SERVER=$(addprefix obj/server/,$(filter-out oc_obt.o,$(notdir $(SRC:.c=.o))))
-OBJ_CLIENT_SERVER=$(addprefix obj/client_server/,$(notdir $(SRC:.c=.o)))
 VPATH=../../messaging/coap/:../../util/:../../api/:../../deps/tinycbor/src/:../../deps/mbedtls/library:
 LIBS?= -lm -pthread -lrt
 
@@ -95,103 +92,100 @@ CFLAGS += $(EXTRA_CFLAGS)
 
 SAMPLES_CREDS = $(addsuffix _creds, ${SAMPLES} ${OBT})
 
-CONSTRAINED_LIBS = libiotivity-constrained-server.a libiotivity-constrained-client.a \
-		   libiotivity-constrained-server.so libiotivity-constrained-client.so \
-		   libiotivity-constrained-client-server.so libiotivity-constrained-client-server.a
-PC = iotivity-constrained-client.pc iotivity-constrained-server.pc \
+OBJ_COMMON=$(addprefix obj/,$(notdir $(SRC_COMMON:.c=.lo)))
+OBJ_CLIENT=$(addprefix obj/client/,$(notdir $(SRC:.c=.lo)))
+OBJ_SERVER=$(addprefix obj/server/,$(filter-out oc_obt.lo,$(notdir $(SRC:.c=.lo))))
+OBJ_CLIENT_SERVER=$(addprefix obj/client_server/,$(notdir $(SRC:.c=.lo)))
+
+CONSTRAINED_LIBS = libiotivity-constrained-server.la \
+		   libiotivity-constrained-client.la \
+		   libiotivity-constrained-client-server.la
+PC = iotivity-constrained-client.pc \
+     iotivity-constrained-server.pc \
      iotivity-constrained-client-server.pc
 
 all: $(MBEDTLS_PATCH_FILE) $(CONSTRAINED_LIBS) $(SAMPLES) $(PC)
 
 .PHONY: clean
 
-obj/%.o: %.c
+obj/%.lo: %.c
 	@mkdir -p ${@D}
-	${CC} -c -o $@ $< ${CFLAGS}
+	$(LIBTOOL) --tag=CC --mode=compile ${CC} -c -o $@ $< ${CFLAGS}
 
-obj/server/%.o: %.c
+obj/server/%.lo: %.c
 	@mkdir -p ${@D}
-	${CC} -c -o $@ $< ${CFLAGS} -DOC_SERVER
+	$(LIBTOOL) --tag=CC --mode=compile ${CC} -c -o $@ $< ${CFLAGS} -DOC_SERVER
 
-obj/client/%.o: %.c
+obj/client/%.lo: %.c
 	@mkdir -p ${@D}
-	${CC} -c -o $@ $< ${CFLAGS} -DOC_CLIENT
+	$(LIBTOOL) --tag=CC --mode=compile ${CC} -c -o $@ $< ${CFLAGS} -DOC_CLIENT
 
-obj/client_server/%.o: %.c
+obj/client_server/%.lo: %.c
 	@mkdir -p ${@D}
-	${CC} -c -o $@ $< ${CFLAGS} -DOC_CLIENT -DOC_SERVER
+	$(LIBTOOL) --tag=CC --mode=compile ${CC} -c -o $@ $< ${CFLAGS} -DOC_CLIENT -DOC_SERVER
 
-libiotivity-constrained-server.a: $(OBJ_COMMON) $(OBJ_SERVER)
-	$(AR) -rcs $@ $(OBJ_COMMON) $(OBJ_SERVER)
+libiotivity-constrained-server.la: $(OBJ_COMMON) $(OBJ_SERVER)
+	$(LIBTOOL) --tag=CC --mode=link $(CC) -o $@ -rpath $(libdir) -version-info $(MAJOR):$(MINOR):0 $^ $(LIBS)
 
-libiotivity-constrained-server.so: $(OBJ_COMMON) $(OBJ_SERVER)
-	$(CC) -shared -o $@ $(OBJ_COMMON) $(OBJ_SERVER) $(LIBS)
+libiotivity-constrained-client.la: $(OBJ_COMMON) $(OBJ_CLIENT)
+	$(LIBTOOL) --tag=CC --mode=link $(CC) -o $@ -rpath $(libdir) -version-info $(MAJOR):$(MINOR):0 $^ $(LIBS)
 
-libiotivity-constrained-client.a: $(OBJ_COMMON) $(OBJ_CLIENT)
-	$(AR) -rcs $@ $(OBJ_COMMON) $(OBJ_CLIENT)
+libiotivity-constrained-client-server.la: $(OBJ_COMMON) $(OBJ_CLIENT_SERVER)
+	$(LIBTOOL) --tag=CC --mode=link $(CC) -o $@ -rpath $(libdir) -version-info $(MAJOR):$(MINOR):0 $^ $(LIBS)
 
-libiotivity-constrained-client.so: $(OBJ_COMMON) $(OBJ_CLIENT)
-	$(CC) -shared -o $@ $(OBJ_COMMON) $(OBJ_CLIENT) $(LIBS)
-
-libiotivity-constrained-client-server.a: $(OBJ_COMMON) $(OBJ_CLIENT_SERVER)
-	$(AR) -rcs $@ $(OBJ_COMMON) $(OBJ_CLIENT_SERVER)
-
-libiotivity-constrained-client-server.so: $(OBJ_COMMON) $(OBJ_CLIENT_SERVER)
-	$(CC) -shared -o $@ $(OBJ_COMMON) $(OBJ_CLIENT_SERVER) $(LIBS)
-
-server: libiotivity-constrained-server.a
+server: libiotivity-constrained-server.la
 	@mkdir -p $@_creds
-	${CC} -o $@ ../../apps/server_linux.c libiotivity-constrained-server.a -DOC_SERVER ${CFLAGS} ${LIBS}
+	$(LIBTOOL) --tag=CC --mode=link ${CC} -static -o $@ ../../apps/server_linux.c libiotivity-constrained-server.la -DOC_SERVER ${CFLAGS} ${LIBS}
 
-client: libiotivity-constrained-client.a
+client: libiotivity-constrained-client.la
 	@mkdir -p $@_creds
-	${CC} -o $@ ../../apps/client_linux.c libiotivity-constrained-client.a -DOC_CLIENT ${CFLAGS} ${LIBS}
+	$(LIBTOOL) --tag=CC --mode=link ${CC} -static -o $@ ../../apps/client_linux.c libiotivity-constrained-client.la -DOC_CLIENT ${CFLAGS} ${LIBS}
 
-smart_lock: libiotivity-constrained-client.a
+smart_lock: libiotivity-constrained-client.la
 	@mkdir -p $@_creds
-	${CC} -o $@ ../../apps/smart_lock_linux.c libiotivity-constrained-client.a -DOC_CLIENT ${CFLAGS} ${LIBS}
+	$(LIBTOOL) --tag=CC --mode=link ${CC} -static -o $@ ../../apps/smart_lock_linux.c libiotivity-constrained-client.la -DOC_CLIENT ${CFLAGS} ${LIBS}
 
-temp_sensor: libiotivity-constrained-client.a
+temp_sensor: libiotivity-constrained-client.la
 	@mkdir -p $@_creds
-	${CC} -o $@ ../../apps/temp_sensor_client_linux.c libiotivity-constrained-client.a -DOC_CLIENT ${CFLAGS} ${LIBS}
+	$(LIBTOOL) --tag=CC --mode=link ${CC} -static -o $@ ../../apps/temp_sensor_client_linux.c libiotivity-constrained-client.la -DOC_CLIENT ${CFLAGS} ${LIBS}
 
-simpleserver: libiotivity-constrained-server.a
+simpleserver: libiotivity-constrained-server.la
 	@mkdir -p $@_creds
-	${CC} -o $@ ../../apps/simpleserver.c libiotivity-constrained-server.a -DOC_SERVER ${CFLAGS}  ${LIBS}
+	$(LIBTOOL) --tag=CC --mode=link ${CC} -static -o $@ ../../apps/simpleserver.c libiotivity-constrained-server.la -DOC_SERVER ${CFLAGS}  ${LIBS}
 
-simpleclient: libiotivity-constrained-client.a
+simpleclient: libiotivity-constrained-client.la
 	@mkdir -p $@_creds
-	${CC} -o $@ ../../apps/simpleclient.c libiotivity-constrained-client.a -DOC_CLIENT ${CFLAGS}  ${LIBS}
+	$(LIBTOOL) --tag=CC --mode=link ${CC} -static -o $@ ../../apps/simpleclient.c libiotivity-constrained-client.la -DOC_CLIENT ${CFLAGS}  ${LIBS}
 
-client_collections_linux: libiotivity-constrained-client.a
+client_collections_linux: libiotivity-constrained-client.la
 	@mkdir -p $@_creds
-	${CC} -o $@ ../../apps/client_collections_linux.c libiotivity-constrained-client.a -DOC_CLIENT ${CFLAGS}  ${LIBS}
+	$(LIBTOOL) --tag=CC --mode=link ${CC} -static -o $@ ../../apps/client_collections_linux.c libiotivity-constrained-client.la -DOC_CLIENT ${CFLAGS}  ${LIBS}
 
-server_collections_linux: libiotivity-constrained-server.a
+server_collections_linux: libiotivity-constrained-server.la
 	@mkdir -p $@_creds
-	${CC} -o $@ ../../apps/server_collections_linux.c libiotivity-constrained-server.a -DOC_SERVER ${CFLAGS} ${LIBS}
+	$(LIBTOOL) --tag=CC --mode=link ${CC} -static -o $@ ../../apps/server_collections_linux.c libiotivity-constrained-server.la -DOC_SERVER ${CFLAGS} ${LIBS}
 
-client_block_linux: libiotivity-constrained-client.a
-	${CC} -o $@ ../../apps/client_block_linux.c libiotivity-constrained-client.a -DOC_CLIENT ${CFLAGS}  ${LIBS}
+client_block_linux: libiotivity-constrained-client.la
+	$(LIBTOOL) --tag=CC --mode=link ${CC} -static -o $@ ../../apps/client_block_linux.c libiotivity-constrained-client.la -DOC_CLIENT ${CFLAGS}  ${LIBS}
 
-server_block_linux: libiotivity-constrained-server.a
-	${CC} -o $@ ../../apps/server_block_linux.c libiotivity-constrained-server.a -DOC_SERVER ${CFLAGS} ${LIBS}
+server_block_linux: libiotivity-constrained-server.la
+	$(LIBTOOL) --tag=CC --mode=link ${CC} -static -o $@ ../../apps/server_block_linux.c libiotivity-constrained-server.la -DOC_SERVER ${CFLAGS} ${LIBS}
 
-smart_home_server_linux: libiotivity-constrained-server.a
+smart_home_server_linux: libiotivity-constrained-server.la
 	@mkdir -p $@_creds
-	${CC} -o $@ ../../apps/smart_home_server_linux.c libiotivity-constrained-server.a -DOC_SERVER ${CFLAGS} ${LIBS}
+	$(LIBTOOL) --tag=CC --mode=link ${CC} -static -o $@ ../../apps/smart_home_server_linux.c libiotivity-constrained-server.la -DOC_SERVER ${CFLAGS} ${LIBS}
 
-multi_device_server: libiotivity-constrained-server.a
+multi_device_server: libiotivity-constrained-server.la
 	@mkdir -p $@_creds
-	${CC} -o $@ ../../apps/multi_device_server_linux.c libiotivity-constrained-server.a -DOC_SERVER ${CFLAGS} ${LIBS}
+	$(LIBTOOL) --tag=CC --mode=link ${CC} -static -o $@ ../../apps/multi_device_server_linux.c libiotivity-constrained-server.la -DOC_SERVER ${CFLAGS} ${LIBS}
 
-multi_device_client: libiotivity-constrained-client.a
+multi_device_client: libiotivity-constrained-client.la
 	@mkdir -p $@_creds
-	${CC} -o $@ ../../apps/multi_device_client_linux.c libiotivity-constrained-client.a -DOC_CLIENT ${CFLAGS}  ${LIBS}
+	$(LIBTOOL) --tag=CC --mode=link ${CC} -static -o $@ ../../apps/multi_device_client_linux.c libiotivity-constrained-client.la -DOC_CLIENT ${CFLAGS}  ${LIBS}
 
-${OBT}: libiotivity-constrained-client.a
+${OBT}: libiotivity-constrained-client.la
 	@mkdir -p $@_creds
-	${CC} -o $@ ../../onboarding_tool/obtmain.c libiotivity-constrained-client.a -DOC_CLIENT ${CFLAGS}  ${LIBS}
+	$(LIBTOOL) --tag=CC --mode=link ${CC} -static -o $@ ../../onboarding_tool/obtmain.c libiotivity-constrained-client.la -DOC_CLIENT ${CFLAGS}  ${LIBS}
 
 iotivity-constrained-server.pc: iotivity-constrained-server.pc.in
 	$(SED) > $@ < $< \
@@ -254,10 +248,10 @@ install: $(SAMPLES) $(PC) $(CONSTRAINED_LIBS)
 	$(INSTALL) -m 644 $(HEADERS_COAP) $(includedir)/iotivity-constrained/messaging/coap
 	$(INSTALL) -m 644 $(HEADERS_TINYCBOR) $(includedir)/iotivity-constrained/deps/tinycbor/src
 	$(INSTALL) -m 644 $(PC) $(pkgconfigdir)
-	$(INSTALL) -m 644 $(CONSTRAINED_LIBS) $(libdir)
+	$(LIBTOOL) --mode=install $(INSTALL) $(CONSTRAINED_LIBS) $(libdir)
 # Installing the samples
 	$(INSTALL) -d ${install_bin_dir}
-	$(INSTALL) $(SAMPLES) ${install_bin_dir}
+	$(LIBTOOL) --mode=install $(INSTALL) $(SAMPLES) ${install_bin_dir}
 
 ############# TESTS ##########################
 TESTS = \
@@ -265,22 +259,22 @@ TESTS = \
 	tests/server_init_linux_test \
 	tests/client_get_linux_test
 
-tests/client_init_linux_test: libiotivity-constrained-client.a
+tests/client_init_linux_test: libiotivity-constrained-client.la
 	@mkdir -p $(@D)
-	$(CC) -o $@ ../../tests/client_init_linux.c \
-		libiotivity-constrained-client.a \
+	$(LIBTOOL) --tag=CC --mode=link $(CC) -static -o $@ ../../tests/client_init_linux.c \
+		libiotivity-constrained-client.la \
 		-DOC_CLIENT $(CFLAGS) $(LIBS)
 
-tests/server_init_linux_test: libiotivity-constrained-server.a
+tests/server_init_linux_test: libiotivity-constrained-server.la
 	@mkdir -p $(@D)
-	$(CC) -o $@ ../../tests/server_init_linux.c \
-		libiotivity-constrained-server.a \
+	$(LIBTOOL) --tag=CC --mode=link $(CC) -static -o $@ ../../tests/server_init_linux.c \
+		libiotivity-constrained-server.la \
 		-DOC_SERVER $(CFLAGS) $(LIBS)
 
-tests/client_get_linux_test: libiotivity-constrained-client-server.a
+tests/client_get_linux_test: libiotivity-constrained-client-server.la
 	@mkdir -p $(@D)
-	$(CC) -o $@ ../../tests/client_get_linux.c \
-		libiotivity-constrained-client-server.a -DOC_SERVER \
+	$(LIBTOOL) --tag=CC --mode=link $(CC) -static -o $@ ../../tests/client_get_linux.c \
+		libiotivity-constrained-client-server.la -DOC_SERVER \
 		-DOC_CLIENT $(CFLAGS) $(LIBS)
 
 check: $(TESTS)
