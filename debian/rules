@@ -1,0 +1,23 @@
+#!/usr/bin/make -f
+# See debhelper(7) (uncomment to enable)
+# output every command that modifies files on the build system.
+
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+
+CFLAGS := $(shell dpkg-buildflags --get CFLAGS)
+CFLAGS := $(filter-out -O2,$(CFLAGS))
+
+MAKEFLAGS = SECURE=1 DEBUG=1 DYNAMIC=1 TCP=1 IPV4=1 \
+	    CC=$(DEB_HOST_GNU_TYPE)-gcc \
+	    CXX=$(DEB_HOST_GNU_TYPE)-g++ \
+	    MULTIARCH=${DEB_HOST_MULTIARCH}
+
+%:
+	dh $@ --parallel --sourcedirectory=port/linux
+
+override_dh_auto_test:
+
+override_dh_strip:
+	dh_strip --dbg-package=iotivity-constrained-dbg
+
