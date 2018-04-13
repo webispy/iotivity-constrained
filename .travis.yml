@@ -1,0 +1,43 @@
+language: generic
+sudo: required
+services: docker
+addons:
+  apt:
+    update: true
+    packages:
+      - qemu-user-static
+      - binfmt-support
+env:
+  matrix:
+  - TARGET=ux64 CHROOT=xenial-amd64 HOST=amd64
+  - TARGET=u710cross CHROOT=xenial-amd64-arm64 HOST=arm64
+  - TARGET=u530cross CHROOT=xenial-amd64-armhf HOST=armhf
+before_install:
+- git submodule update --init
+install:
+- update-binfmts --display
+- docker system info
+- sudo rm /dev/shm
+- sudo mkdir /dev/shm
+- sudo mount --bind /run/shm /dev/shm
+- docker pull webispy/artik_devenv_$TARGET
+
+script:
+- docker run -it --name builder --privileged -v /var/lib/schroot -v $PWD:/home/work/src
+  -w /home/work/src webispy/artik_devenv_$TARGET bash -c "mkdir /home/work/result
+  && sbuild --chroot $CHROOT --host $HOST && cp /home/work/*.deb /home/work/result/"
+
+before_deploy:
+- docker cp builder:/home/work/result /tmp/
+- ls -l /tmp/result
+
+deploy:
+  provider: releases
+  api_key:
+    secure: L8Zmvdjljsh2EBMmzMBwVJNqs51cIMilyV+BWA8Zpf+5BTdA55pX7phm0+kT8wTsUcD3DnheyzJcZI9awftNS+iNvgtm5cVuFgBrHcVqQDBOHSFhULBqE/XlkvYjKOK8qCk+bjxNpLCqBlURR6VgcbDssQXjJaI/gZiOwL+Ki7cAwBgMmYRcfstNvdaaGrGbvY82gnznW6r8z7onSicCplupN3gSCCrUqgM503SVjP/B9JmuofgmIqQkUaX+mWGoKbs8ZYmKoun1sfa7cfGiq30WokXtK3vvNz+GyjpGWZQbc9BO0jGlCWSNCIgzGw8f/G2j5SqnJx54azQv9DHFcXb0VjxERtii3ixqhtK4IPCkQyafu42x/7uxRSJiBgnYlHIf6hXYsw6F8dv7Mah+OBOaNL94pM/aazqDZ8uviagVc3uoGw4xawLHewtPrqwsNfhoDCzx/uQP5aj1FPq1IRQ4ftv1PJZBitX9GrA8XJN8r8EQR2jTeu2GurSqPDlB7M1IxzzUBmlRqJY9zRjrGBdcWf68egibBZrh/OUyFHVevB9wHlhoTatVxPPAgC/q7uQ4WlXOnpvlc2WCbYDFAxLt1QK6DwMNA/XkP3sU9kYZMsN9eFtzRTbenta/ZAGYdy0fdfGQp5SYdgtWY4EVhIaE4SaSgfehJKmxGQbWRlc=
+  file_glob: true
+  file: /tmp/result/*
+  skip_cleanup: true
+  on:
+    tags: true
+    repo: webispy/iotivity-constrained
