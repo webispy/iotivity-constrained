@@ -3,8 +3,8 @@ Section: libs
 Priority: optional
 Maintainer: Inho Oh <webispy@gmail.com>
 Build-Depends: debhelper (>=9),
-	libtool-bin,
 	git,
+	cmake,
 	patch
 Standards-Version: 3.9.6
 Homepage: https://www.iotivity.org/
