@@ -3,9 +3,9 @@ sudo: required
 services: docker
 env:
   matrix:
-  - TARGET=ux64 CHROOT=xenial-amd64 ARCH=amd64
-  - TARGET=u710 CHROOT=xenial-arm64 ARCH=arm64
-  - TARGET=u530 CHROOT=xenial-armhf ARCH=armhf
+  - TARGET=ux64 CHROOT=xenial-amd64 HOST=amd64
+  - TARGET=u710cross CHROOT=xenial-amd64-arm64 HOST=arm64
+  - TARGET=u530cross CHROOT=xenial-amd64-armhf HOST=armhf
 install:
 - sudo apt install -y qemu-user-static binfmt-support
 - update-binfmts --display
@@ -18,7 +18,7 @@ install:
 script:
 - docker run -it --name builder --privileged -v /var/lib/schroot -v $PWD:/home/work/src
   -w /home/work/src webispy/artik_devenv_$TARGET bash -c "mkdir /home/work/result
-  && sbuild --chroot $CHROOT --arch $ARCH && cp /home/work/*.deb /home/work/result/"
+  && sbuild --chroot $CHROOT --host $HOST && cp /home/work/*.deb /home/work/result/"
 
 before_deploy:
 - docker cp builder:/home/work/result /tmp/
