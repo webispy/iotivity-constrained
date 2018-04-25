@@ -55,7 +55,7 @@ extern "C"
 #ifdef OC_DEBUG
 #define OC_LOG(level, ...)                                                     \
   do {                                                                         \
-    PRINT("%s: %s <%s:%d>: ", level, __FILE__, __func__, __LINE__);            \
+    PRINT("%s: %s <%s:%d>: ", level, __FILENAME__, __func__, __LINE__);        \
     PRINT(__VA_ARGS__);                                                        \
     PRINT("\n");                                                               \
   } while (0)
@@ -64,13 +64,13 @@ extern "C"
 #define OC_ERR(...) OC_LOG("ERROR", __VA_ARGS__)
 #define OC_LOGipaddr(endpoint)                                                 \
   do {                                                                         \
-    PRINT("DEBUG: %s <%s:%d>: ", __FILE__, __func__, __LINE__);                \
+    PRINT("DEBUG: %s <%s:%d>: ", __FILENAME__, __func__, __LINE__);            \
     PRINTipaddr(endpoint);                                                     \
     PRINT("\n");                                                               \
   } while (0)
 #define OC_LOGbytes(bytes, length)                                             \
   do {                                                                         \
-    PRINT("DEBUG: %s <%s:%d>: ", __FILE__, __func__, __LINE__);                \
+    PRINT("DEBUG: %s <%s:%d>: ", __FILENAME__, __func__, __LINE__);            \
     uint16_t i;                                                                \
     for (i = 0; i < length; i++)                                               \
       PRINT(" %02X", bytes[i]);                                                \
