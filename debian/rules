@@ -18,6 +18,7 @@ override_dh_auto_configure:
 		git reset --hard && \
 		patch -r - -s -N -p1 < ../../patches/mbedtls_ocf_patch_1 && \
 		patch -r - -s -N -p1 < ../../patches/mbedtls_iotivity_constrained_patch_2 && \
+		patch -r - -s -N -p1 < ../../patches/mbedtls_debug_filepath_patch_3 && \
 		echo patches applied > patched.txt
 	dh_auto_configure -- \
 		-DSECURE=1 -DDEBUG=1 -DDYNAMIC=1 -DTCP=1 -DIPV4=1 \

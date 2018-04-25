@@ -14,6 +14,12 @@ INCLUDE(../../security/CMakeLists.txt)
 SET(CMAKE_C_FLAGS "${CMAKE_CLFLAGS} -g -fPIC -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -ffreestanding -Os -fno-stack-protector -ffunction-sections -fdata-sections -fno-reorder-functions -fno-defer-pop -fno-strict-overflow -std=gnu99 -Wall -Wextra -Werror -pedantic")
 SET(extra_cflags "")
 
+# Remove working directory path (Use __FILEPATH__ instead of __FILE__)
+execute_process(COMMAND readlink -e "${CMAKE_SOURCE_DIR}/../../"
+	OUTPUT_VARIABLE SRC_PATH
+	OUTPUT_STRIP_TRAILING_WHITESPACE)
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__FILEPATH__='\"$(subst ${SRC_PATH}/,,$(abspath $<))\"'")
+
 # Global include directories
 INCLUDE_DIRECTORIES(
 	${CMAKE_CURRENT_SOURCE_DIR}
