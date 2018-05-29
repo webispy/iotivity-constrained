@@ -1,0 +1,38 @@
+Source: iotivity-constrained
+Section: libs
+Priority: optional
+Maintainer: Inho Oh <webispy@gmail.com>
+Build-Depends: debhelper (>=9),
+	git,
+	cmake,
+	patch
+Standards-Version: 3.9.6
+Homepage: https://www.iotivity.org/
+Vcs-Git: https://github.com/webispy/iotivity-constrained.git
+Vcs-Browser: https://github.com/webispy/iotivity-constrained
+
+Package: iotivity-constrained
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Library to use the IoTivity-Constrained stack
+ IoTivity-Constrained is a lightweight implementation of the `Open Connectivity Foundation <https://openconnectivity.org/>`_ (OCF) standards for the Internet of Things (IoT).
+
+Package: iotivity-constrained-dev
+Architecture: any
+Depends: iotivity-constrained
+Description: Development files for using the IoTivity-Constrained library
+ IoTivity-Constrained is a lightweight implementation of the `Open Connectivity Foundation <https://openconnectivity.org/>`_ (OCF) standards for the Internet of Things (IoT).
+
+Package: iotivity-constrained-test
+Architecture: any
+Depends: iotivity-constrained
+Description: IoTivity-Constrained test programs
+ IoTivity-Constrained is a lightweight implementation of the `Open Connectivity Foundation <https://openconnectivity.org/>`_ (OCF) standards for the Internet of Things (IoT).
+
+Package: iotivity-constrained-dbg
+Section: debug
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Library to use the IoTivity-Constrained stack with debugging symbols
+ IoTivity-Constrained is a lightweight implementation of the `Open Connectivity Foundation <https://openconnectivity.org/>`_ (OCF) standards for the Internet of Things (IoT).
+
