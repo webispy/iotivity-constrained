@@ -22,4 +22,4 @@ Description: Iotivity constrained client library
 Version: @version@
 Libs.private: -lm -pthread
 Cflags: -I${includedir}/iotivity-constrained -DOC_CLIENT @extra_cflags@
-Libs: -L${libdir} -liotivity-constrained-client
+Libs: -L${libdir} -lm -pthread -liotivity-constrained-client
